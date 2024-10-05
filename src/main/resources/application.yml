@@ -4,8 +4,6 @@ server:
     context-path: /system
 
 spring:
-  profiles:
-    active: local
   application:
     name: system
   datasource:
