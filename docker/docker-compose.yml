@@ -10,7 +10,8 @@ services:
       OTEL_METRICS_EXPORTER: "prometheus"
       OTEL_EXPORTER_PROMETHEUS_HOST: "0.0.0.0"
       OTEL_EXPORTER_PROMETHEUS_PORT: "9464"
-      OTEL_LOGS_EXPORTER: "logging"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://collector:4137"
     ports:
       - "8080:8080"
     depends_on:
@@ -30,6 +31,28 @@ services:
       - "9090:9090"
     depends_on:
       - system
+
+  collector:
+    container_name: collector
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    command:
+      - --config=/etc/otelcol-contrib/otel-collector.yml
+    volumes:
+      - ./otel-collector.yml:/etc/otelcol-contrib/otel-collector.yml
+    restart: always
+    ports:
+      - "4137" #OLTP gRPC receiver
+    depends_on:
+      - loki
+
+  loki:
+    container_name: loki
+    image: grafana/loki:2.9.3
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+    restart: always
+    ports:
+      - "3100"
 
   grafana:
     container_name: grafana
